@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Shared settings (TFM, ACE references, Harmony, output path) come from
+    ..\..\Directory.Build.props. Add only mod-specific things here.
+  -->
+
+  <PropertyGroup>
+    <!--
+      These three must agree: project file name, AssemblyName, RootNamespace.
+      ModContainer looks for  Mods\<Name>\<Name>.dll  and resolves the entry
+      type as "<AssemblyName>.Mod". VerifyModLayout enforces it at build time.
+    -->
+    <AssemblyName>Aeshnidae.DatBackup</AssemblyName>
+    <RootNamespace>Aeshnidae.DatBackup</RootNamespace>
+    <Version>1.0.0</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- ModManager refuses to load a folder without Meta.json next to the dll. -->
+    <None Update="Meta.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

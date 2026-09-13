@@ -1,0 +1,10 @@
+{
+    "Name":  "Aeshnidae.PortalAccess",
+    "Author":  "Aeshnidae",
+    "Description":  "Removes level requirements from all portals.",
+    "Version":  "1.0",
+    "Priority":  0,
+    "Enabled":  true,
+    "HotReload":  true,
+    "RegisterCommands":  true
+}

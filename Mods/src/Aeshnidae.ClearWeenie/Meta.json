@@ -1,0 +1,10 @@
+{
+    "Name":  "Aeshnidae.ClearWeenie",
+    "Author":  "Aeshnidae",
+    "Description":  "Evicts one weenie from the cache and refreshes its live instances, without the global /clearcache spike",
+    "Version":  "1.0",
+    "Priority":  0,
+    "Enabled":  true,
+    "HotReload":  true,
+    "RegisterCommands":  true
+}

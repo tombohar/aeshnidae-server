@@ -1,0 +1,10 @@
+{
+  "Name": "Aeshnidae.SkillMastery",
+  "Author": "Aeshnidae",
+  "Description": "Post-retail skill progression that survives enlightenment. /mastery",
+  "Version": "1.0",
+  "Priority": 100,
+  "Enabled": true,
+  "HotReload": true,
+  "RegisterCommands": true
+}

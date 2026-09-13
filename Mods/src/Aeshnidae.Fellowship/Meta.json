@@ -1,0 +1,10 @@
+{
+  "Name": "Aeshnidae.Fellowship",
+  "Author": "Aeshnidae",
+  "Description": "Fellowship size and experience sharing, as settings rather than constants. /fellow",
+  "Version": "1.0",
+  "Priority": 100,
+  "Enabled": true,
+  "HotReload": true,
+  "RegisterCommands": true
+}

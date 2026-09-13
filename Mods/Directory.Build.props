@@ -1,0 +1,128 @@
+<Project>
+
+  <!--
+    Shared build settings for every mod under C:\ACEPublic\Mods.
+    MSBuild picks this up automatically for any .csproj beneath this folder.
+
+    Nothing in ACE's own source tree is touched by any of this.
+  -->
+
+  <PropertyGroup>
+    <!-- Folder this file lives in: C:\ACEPublic\Mods\  (ACE's ModsDirectory) -->
+    <ModsRoot>$(MSBuildThisFileDirectory)</ModsRoot>
+
+    <!-- Must match the host server (ACE.Server targets net10.0 / x64). -->
+    <TargetFramework>net10.0</TargetFramework>
+    <PlatformTarget>x64</PlatformTarget>
+    <Platforms>AnyCPU;x64</Platforms>
+
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+
+    <!-- 0436: type conflicts with an imported type (common when patching ACE) -->
+    <NoWarn>$(NoWarn);0436;1073;8509</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!--
+      ModManager requires exactly:  <ModsDirectory>\<Name>\<Name>.dll  +  Meta.json
+      so each project builds into Mods\<ProjectName>\ regardless of Debug/Release.
+
+      $(MSBuildProjectName) is used rather than $(AssemblyName): Directory.Build.props
+      is imported before the project body, so AssemblyName is not set yet here.
+      VerifyModLayout below enforces that the two agree.
+
+      Do NOT also set BaseOutputPath - the SDK's DefaultItemExcludes contains both
+      $(BaseOutputPath)/** and $(OutputPath)/**, so pointing either at the project
+      folder silently excludes every .cs file and produces an empty assembly.
+    -->
+    <OutputPath>$(ModsRoot)$(MSBuildProjectName)\</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!--
+      Where the compiled server lives. Override on the command line if needed:
+        dotnet build -p:AceConfiguration=Debug
+        dotnet build -p:AcePath=D:\some\other\server
+    -->
+    <AceConfiguration Condition="'$(AceConfiguration)' == ''">Release</AceConfiguration>
+    <AcePath Condition="'$(AcePath)' == ''">$(ModsRoot)..\Source\ACE.Server\bin\x64\$(AceConfiguration)\net10.0</AcePath>
+  </PropertyGroup>
+
+  <Target Name="VerifyAcePath" BeforeTargets="ResolveAssemblyReferences">
+    <Error Condition="!Exists('$(AcePath)\ACE.Server.dll')"
+           Text="ACE.Server.dll not found at '$(AcePath)'. Build the server in $(AceConfiguration)|x64 first, or pass -p:AcePath=&lt;folder&gt;." />
+  </Target>
+
+  <Target Name="VerifyModLayout" BeforeTargets="Build">
+    <Error Condition="'$(AssemblyName)' != '$(MSBuildProjectName)'"
+           Text="AssemblyName ('$(AssemblyName)') must equal the project name ('$(MSBuildProjectName)'). ModContainer looks for &lt;FolderName&gt;\&lt;FolderName&gt;.dll." />
+    <Error Condition="'$(RootNamespace)' != '$(AssemblyName)'"
+           Text="RootNamespace ('$(RootNamespace)') must equal AssemblyName ('$(AssemblyName)'). ModContainer resolves the entry type as '$(AssemblyName).Mod'." />
+  </Target>
+
+  <!--
+    Every ACE assembly is referenced with Private=False: the running server already
+    has them loaded, and McMaster's PluginLoader is configured with
+    PreferSharedTypes=true. Copying them next to the mod would give you a second
+    copy of every type, and nothing would cast.
+  -->
+  <ItemGroup>
+    <Reference Include="ACE.Adapter">
+      <HintPath>$(AcePath)\ACE.Adapter.dll</HintPath>
+      <Private>False</Private>
+      <ExcludeAssets>runtime</ExcludeAssets>
+    </Reference>
+    <Reference Include="ACE.Common">
+      <HintPath>$(AcePath)\ACE.Common.dll</HintPath>
+      <Private>False</Private>
+      <ExcludeAssets>runtime</ExcludeAssets>
+    </Reference>
+    <Reference Include="ACE.Database">
+      <HintPath>$(AcePath)\ACE.Database.dll</HintPath>
+      <Private>False</Private>
+      <ExcludeAssets>runtime</ExcludeAssets>
+    </Reference>
+    <Reference Include="ACE.DatLoader">
+      <HintPath>$(AcePath)\ACE.DatLoader.dll</HintPath>
+      <Private>False</Private>
+      <ExcludeAssets>runtime</ExcludeAssets>
+    </Reference>
+    <Reference Include="ACE.Entity">
+      <HintPath>$(AcePath)\ACE.Entity.dll</HintPath>
+      <Private>False</Private>
+      <ExcludeAssets>runtime</ExcludeAssets>
+    </Reference>
+    <Reference Include="ACE.Server">
+      <HintPath>$(AcePath)\ACE.Server.dll</HintPath>
+      <Private>False</Private>
+      <ExcludeAssets>runtime</ExcludeAssets>
+    </Reference>
+    <Reference Include="log4net">
+      <HintPath>$(AcePath)\log4net.dll</HintPath>
+      <Private>False</Private>
+      <ExcludeAssets>runtime</ExcludeAssets>
+    </Reference>
+    <Reference Include="Microsoft.EntityFrameworkCore">
+      <HintPath>$(AcePath)\Microsoft.EntityFrameworkCore.dll</HintPath>
+      <Private>False</Private>
+      <ExcludeAssets>runtime</ExcludeAssets>
+    </Reference>
+    <Reference Include="Microsoft.EntityFrameworkCore.Relational">
+      <HintPath>$(AcePath)\Microsoft.EntityFrameworkCore.Relational.dll</HintPath>
+      <Private>False</Private>
+      <ExcludeAssets>runtime</ExcludeAssets>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Version must match ACE.Server's Lib.Harmony. runtime excluded: host supplies 0Harmony.dll. -->
+    <PackageReference Include="Lib.Harmony" Version="2.4.2" ExcludeAssets="runtime" />
+  </ItemGroup>
+
+</Project>

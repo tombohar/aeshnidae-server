@@ -1,0 +1,10 @@
+{
+    "Name":  "Aeshnidae.FairPlay",
+    "Author":  "Aeshnidae",
+    "Description":  "One human, one presence: character limits, Marketplace mule rule, same-IP allegiance block, and login IP correlation.",
+    "Version":  "1.0",
+    "Priority":  0,
+    "Enabled":  true,
+    "HotReload":  true,
+    "RegisterCommands":  true
+}

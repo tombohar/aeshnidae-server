@@ -1,0 +1,10 @@
+{
+    "Name":  "Aeshnidae.DiscordRelay",
+    "Author":  "Aeshnidae",
+    "Description":  "Relays in-game Trade and General chat to Discord webhooks.",
+    "Version":  "1.0",
+    "Priority":  0,
+    "Enabled":  true,
+    "HotReload":  true,
+    "RegisterCommands":  true
+}

@@ -1,0 +1,10 @@
+{
+  "Name": "Aeshnidae.AdminAudit",
+  "Author": "Aeshnidae",
+  "Description": "Tamper-evident audit trail of privileged actions: commands, item creation, grants, bank and instance activity.",
+  "Version": "1.0",
+  "Priority": 0,
+  "Enabled": true,
+  "HotReload": true,
+  "RegisterCommands": true
+}

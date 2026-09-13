@@ -1,0 +1,10 @@
+{
+  "Name": "Aeshnidae.Bank",
+  "Author": "Aeshnidae",
+  "Description": "Per-account bank for pyreals, luminance, legendary keys and sturdy iron keys. /bank or /b.",
+  "Version": "1.0",
+  "Priority": 50,
+  "Enabled": true,
+  "HotReload": true,
+  "RegisterCommands": true
+}

@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Shared settings (TFM, ACE references, Harmony, output path) come from
+    ..\..\Directory.Build.props. Add only mod-specific things here.
+  -->
+
+  <PropertyGroup>
+    <AssemblyName>Aeshnidae.SkillMastery</AssemblyName>
+    <RootNamespace>Aeshnidae.SkillMastery</RootNamespace>
+    <Version>1.0.0</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Already loaded by ACE.Server; Private=False so we share its instance. -->
+    <Reference Include="MySqlConnector">
+      <HintPath>$(AcePath)\MySqlConnector.dll</HintPath>
+      <Private>False</Private>
+      <ExcludeAssets>runtime</ExcludeAssets>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- ModManager refuses to load a folder without Meta.json next to the dll. -->
+    <None Update="Meta.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

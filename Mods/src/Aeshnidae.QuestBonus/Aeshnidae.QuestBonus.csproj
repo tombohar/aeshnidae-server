@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Shared settings (TFM, ACE references, Harmony, output path) come from
+    ..\..\Directory.Build.props.
+  -->
+
+  <PropertyGroup>
+    <AssemblyName>Aeshnidae.QuestBonus</AssemblyName>
+    <RootNamespace>Aeshnidae.QuestBonus</RootNamespace>
+    <Version>1.0.0</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Update="Meta.json" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Reference list of every quest name, for filling in Settings.json.
+         Stays in source; the server has no use for it. -->
+    <None Update="Quests.txt" CopyToOutputDirectory="Never" />
+  </ItemGroup>
+
+</Project>

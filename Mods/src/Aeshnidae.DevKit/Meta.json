@@ -1,0 +1,10 @@
+{
+    "Name":  "Aeshnidae.DevKit",
+    "Author":  "Aeshnidae",
+    "Description":  "Content developer toolkit: inspect, import, diff and submit weenies and landblock placements",
+    "Version":  "1.0",
+    "Priority":  0,
+    "Enabled":  true,
+    "HotReload":  true,
+    "RegisterCommands":  true
+}

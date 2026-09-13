@@ -1,0 +1,10 @@
+{
+  "Name": "Aeshnidae.MaxLevel",
+  "Author": "Aeshnidae",
+  "Description": "Raises the character level cap past retail 275, extrapolating the retail XP curve. Tune in Settings.json.",
+  "Version": "1.0",
+  "Priority": 100,
+  "Enabled": true,
+  "HotReload": true,
+  "RegisterCommands": true
+}

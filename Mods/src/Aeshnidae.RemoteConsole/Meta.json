@@ -1,0 +1,10 @@
+{
+    "Name":  "Aeshnidae.RemoteConsole",
+    "Author":  "Aeshnidae",
+    "Description":  "Runs console commands dropped as files into its inbox, so the server can be driven over ssh without an interactive console",
+    "Version":  "1.0",
+    "Priority":  0,
+    "Enabled":  true,
+    "HotReload":  true,
+    "RegisterCommands":  true
+}

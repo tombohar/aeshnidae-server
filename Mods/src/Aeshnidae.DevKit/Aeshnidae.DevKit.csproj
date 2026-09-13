@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Shared settings (TFM, ACE references, Harmony, output path) come from
+    ..\..\Directory.Build.props. Add only mod-specific things here.
+  -->
+
+  <PropertyGroup>
+    <!--
+      These three must agree: project file name, AssemblyName, RootNamespace.
+      ModContainer looks for  Mods\<Name>\<Name>.dll  and resolves the entry
+      type as "<AssemblyName>.Mod". VerifyModLayout enforces it at build time.
+    -->
+    <AssemblyName>Aeshnidae.DevKit</AssemblyName>
+    <RootNamespace>Aeshnidae.DevKit</RootNamespace>
+    <Version>1.0.0</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Raw MySQL access for the cross-schema diff (world vs. base). Host-supplied, like the ACE assemblies. -->
+    <Reference Include="MySqlConnector">
+      <HintPath>$(AcePath)\MySqlConnector.dll</HintPath>
+      <Private>False</Private>
+      <ExcludeAssets>runtime</ExcludeAssets>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- ModManager refuses to load a folder without Meta.json next to the dll. -->
+    <None Update="Meta.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,10 @@
+{
+    "Name":  "Aeshnidae.DatBackup",
+    "Author":  "Aeshnidae",
+    "Description":  "Content-addressed snapshots of the server\u0027s dat files, taken on startup, with restore.",
+    "Version":  "1.0",
+    "Priority":  0,
+    "Enabled":  true,
+    "HotReload":  true,
+    "RegisterCommands":  true
+}

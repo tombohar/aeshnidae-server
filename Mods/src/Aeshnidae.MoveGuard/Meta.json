@@ -1,0 +1,10 @@
+{
+    "Name":  "Aeshnidae.MoveGuard",
+    "Author":  "Aeshnidae",
+    "Description":  "Server-side movement validation: rejects client positions that outrun the player\u0027s real speed, and reports positions physics could not reach. Defeats Blink-style teleport plugins.",
+    "Version":  "1.0",
+    "Priority":  0,
+    "Enabled":  true,
+    "HotReload":  true,
+    "RegisterCommands":  true
+}

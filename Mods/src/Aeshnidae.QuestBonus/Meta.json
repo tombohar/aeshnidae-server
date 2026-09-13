@@ -1,0 +1,10 @@
+{
+  "Name": "Aeshnidae.QuestBonus",
+  "Author": "Aeshnidae (ported from Aquafir's ACE.BaseMod sample)",
+  "Description": "Solved quests grant a small permanent XP multiplier. Tune in Settings.json.",
+  "Version": "1.0",
+  "Priority": 0,
+  "Enabled": true,
+  "HotReload": true,
+  "RegisterCommands": true
+}

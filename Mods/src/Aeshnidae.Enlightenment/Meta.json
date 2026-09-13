@@ -1,0 +1,10 @@
+{
+    "Name":  "Aeshnidae.Enlightenment",
+    "Author":  "Aeshnidae",
+    "Description":  "NPC-driven enlightenment with configurable requirements, keeps and perks.",
+    "Version":  "1.0",
+    "Priority":  0,
+    "Enabled":  true,
+    "HotReload":  true,
+    "RegisterCommands":  true
+}
