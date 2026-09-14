@@ -1,0 +1,10 @@
+{
+  "Name": "Aeshnidae.InstancesNoDat",
+  "Author": "Aeshnidae",
+  "Description": "Dungeon instances that reuse the source landblock id, so no client dat ever changes. /inst",
+  "Version": "0.1",
+  "Priority": 150,
+  "Enabled": true,
+  "HotReload": true,
+  "RegisterCommands": true
+}

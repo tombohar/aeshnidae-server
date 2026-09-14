@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Shared settings (TFM, ACE references, Harmony, output path) come from
+    ..\..\Directory.Build.props. Add only mod-specific things here.
+  -->
+
+  <PropertyGroup>
+    <AssemblyName>Aeshnidae.InstancesNoDat</AssemblyName>
+    <RootNamespace>Aeshnidae.InstancesNoDat</RootNamespace>
+    <Version>0.1.0</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- ModManager refuses to load a folder without Meta.json next to the dll. -->
+    <None Update="Meta.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

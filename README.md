@@ -6,7 +6,7 @@ server runs a modified ACE and players interact with it over the network, the AG
 entitles every player to the source of exactly what is running. This repository is that
 source, and nothing else.
 
-Last synced from the live server: **2026-09-13**.
+Last synced from the live server: **2026-09-14**.
 
 ## What is here
 
@@ -43,6 +43,7 @@ configuration and credentials, and the tooling used to run the server.
 | [`Aeshnidae.Enlightenment`](Mods/src/Aeshnidae.Enlightenment/) | NPC-driven enlightenment with configurable requirements, keeps and perks. |
 | [`Aeshnidae.FairPlay`](Mods/src/Aeshnidae.FairPlay/) | One human, one presence: character limits, Marketplace mule rule, same-IP allegiance block, and login IP correlation. |
 | [`Aeshnidae.Fellowship`](Mods/src/Aeshnidae.Fellowship/) | Fellowship size and experience sharing, as settings rather than constants. /fellow |
+| [`Aeshnidae.InstancesNoDat`](Mods/src/Aeshnidae.InstancesNoDat/) | Dungeon instances that reuse the source landblock id, so no client dat ever changes. /inst |
 | [`Aeshnidae.MaxLevel`](Mods/src/Aeshnidae.MaxLevel/) | Raises the character level cap past retail 275, extrapolating the retail XP curve. Tune in Settings.json. |
 | [`Aeshnidae.MoveGuard`](Mods/src/Aeshnidae.MoveGuard/) | Server-side movement validation: rejects client positions that outrun the player's real speed, and reports positions physics could not reach. Defeats Blink-style teleport plugins. |
 | [`Aeshnidae.PortalAccess`](Mods/src/Aeshnidae.PortalAccess/) | Removes level requirements from all portals. |
