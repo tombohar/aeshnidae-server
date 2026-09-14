@@ -1,0 +1,10 @@
+{
+    "Name":  "Aeshnidae.Hud",
+    "Author":  "Aeshnidae",
+    "Description":  "The HUD feed: server-described panels for clients that can draw them (OpenAC + the AeshHud plugin). Owns /hud and tells provider mods when to send.",
+    "Version":  "1.0",
+    "Priority":  0,
+    "Enabled":  true,
+    "HotReload":  true,
+    "RegisterCommands":  true
+}
