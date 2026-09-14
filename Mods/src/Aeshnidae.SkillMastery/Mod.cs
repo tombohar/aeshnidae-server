@@ -22,6 +22,9 @@ public class Mod : IHarmonyMod
     {
         Settings = Settings.Load(ModPath);
 
+        // The HUD listening flag must be ephemeral before anyone sets it; see HudFeed.
+        HudFeed.RegisterProperty();
+
         // First run writes out the full band table so every segment is there to edit.
         if (Settings.EnsureBands())
             Settings.Save(ModPath);

@@ -63,6 +63,7 @@ internal static class SiblingPatches
 
         Bind(harmony, "Aeshnidae.Bank", "Aeshnidae.Bank.BankService", "Deposit", nameof(AfterBankMove));
         Bind(harmony, "Aeshnidae.Bank", "Aeshnidae.Bank.BankService", "Withdraw", nameof(AfterBankMove));
+        Bind(harmony, "Aeshnidae.Bank", "Aeshnidae.Bank.Transfer", "Send", nameof(AfterBankPay));
         Bind(harmony, "Aeshnidae.XpCurrency", "Aeshnidae.XpCurrency.Transfer", "Send", nameof(AfterXpSend));
         Bind(harmony, "Aeshnidae.InstancesNoDat", "Aeshnidae.InstancesNoDat.InstanceWorld", "GetOrCreate", nameof(AfterGetOrCreate));
     }
@@ -166,6 +167,42 @@ internal static class SiblingPatches
         catch (Exception ex)
         {
             ModManager.Log($"[{Mod.Name}] bank capture failed: {ex.Message}", ModManager.LogLevel.Error);
+        }
+    }
+
+    /// <summary>
+    /// /b pay - the one bank action that reaches somebody else's balance, and the only
+    /// way Radiance and Resonance move between accounts. Unhooked until 2026-09-14: the
+    /// hook beside it watched the retired XpCurrency's transfers instead. The currency
+    /// is Bank's own enum and comes out of __args, as in AfterBankMove.
+    /// </summary>
+    public static void AfterBankPay(Player sender, string recipientName, long amount, object[] __args, object __result)
+    {
+        try
+        {
+            if (Audit is not { } audit || sender is null)
+                return;
+
+            if (!audit.ShouldAudit(sender.Session?.AccessLevel ?? AccessLevel.Player, sender.Name))
+                return;
+
+            var kind = __args is { Length: > 2 } ? __args[2]?.ToString() ?? "?" : "?";
+
+            var (ok, message) = ReadBankResult(__result);
+
+            var record = Auditor.For(sender, AuditKind.Bank, "pay");
+
+            record.Target = recipientName;
+            record.Outcome = ok ? "ok" : "failed";
+            record.Detail = $"pay {amount:N0} {kind} to {recipientName}" + (ok ? "" : $" - refused: {message}");
+
+            record.With("amount", amount).With("currency", kind);
+
+            audit.Record(record);
+        }
+        catch (Exception ex)
+        {
+            ModManager.Log($"[{Mod.Name}] bank-pay capture failed: {ex.Message}", ModManager.LogLevel.Error);
         }
     }
 

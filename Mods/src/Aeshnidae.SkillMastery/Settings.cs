@@ -14,9 +14,9 @@ public class CostBand
 
     /// <summary>
     /// What one whole skill point costs in this band, as a multiple of the last
-    /// retail rank for that skill's advancement class - 306,860,483 xp trained,
-    /// 350,046,134 specialized. So 1.0 is "a skill point costs what retail's most
-    /// expensive rank cost", and 0.5 is half that.
+    /// retail trained rank, 306,860,483 xp (the specialized table's 350,046,134 only
+    /// when Settings.PriceByAdvancementClass is on). So 1.0 is "a skill point costs
+    /// what retail's most expensive rank cost", and 0.5 is half that.
     ///
     /// Priced per skill point rather than per rank on purpose: RanksPerSkillPoint
     /// then only controls how finely the purchase is chopped up, never how much it
@@ -69,14 +69,26 @@ public class Settings
     /// <summary>
     /// How much dearer a mastery point is than the retail curve says.
     ///
-    /// 10: the first mastery point costs ten times what rank 209 would have (3.31B
-    /// trained, 3.78B specialized), and the curve climbs from there at the retail rate.
+    /// 10: the first mastery point costs ten times what rank 209 would have (3.31B;
+    /// 3.78B for a specialized skill only with PriceByAdvancementClass on), and the
+    /// curve climbs from there at the retail rate.
     /// This is where the "1/10th of a point" mechanic's weight went when the fractions
     /// were dropped - same power per Radiance as ten tenths at full price each would
     /// have been. Baked into the generated band's CostPerSkillPoint; edit the band to
     /// change a live server, this only shapes a fresh Settings.json.
     /// </summary>
     public double PointPriceMultiplier { get; set; } = 10.0;
+
+    /// <summary>
+    /// Whether a specialized skill pays the specialized table's rate for mastery.
+    ///
+    /// OFF: one price for every skill, the trained table continued. Tom's call,
+    /// 2026-09-14 - a mastery point is the same +1 whatever the skill's class, and
+    /// pricing it by class meant buying it while trained and specializing afterwards
+    /// came out ~12% cheaper than the other way round, for the same result. ON restores
+    /// the per-class rate: 350,046,134 against 306,860,483 for the base rank, x1.14.
+    /// </summary>
+    public bool PriceByAdvancementClass { get; set; } = false;
 
     /// <summary>
     /// Ceiling on mastery skill points per skill.

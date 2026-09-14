@@ -1,58 +1,24 @@
-using System.Runtime.CompilerServices;
-
 namespace Aeshnidae.SkillMastery;
 
 /// <summary>
-/// The HUD feed: panels the server describes and a client that can draw them draws.
+/// The skills panel for the HUD feed.
 ///
-/// The stock client cannot show a window it was not compiled with, so this exists for
-/// clients that can - today the OpenAC plugin in Mods\Content\tools\AeshHud. The
-/// contract is one chat message per panel, on chat type 0x21, carrying a JSON object:
-///
-///     { "v":1, "id":"skills", "title":"...", "sub":"...",
-///       "cols":[{"n":"Skill","w":140}, ...],
-///       "rows":[{"k":"meleedefense","c":["Melee Defense","Spec","462","520","3","1,234,567"],"col":"#9BE39B"}, ...],
-///       "acts":[{"l":"Raise +1","c":"/raise {key} 1","row":true},{"l":"Refresh","c":"/hud sync"}] }
-///
-/// Cells are strings, already formatted; the client lays them out and does nothing
-/// clever with them. An action is a button; its command is sent to the server as if
-/// typed, with {key} replaced by the selected row's key when the action needs a row.
-/// So a panel is a table with buttons, which is enough for skills, bank, mastery and
-/// quest bonus alike, and every one of them ships with no client change.
-///
-/// Why chat type 0x21: it is above every type the stock client's windows know, and
-/// OpenAC's window filters hide it by default, so the line reaches the plugin without
-/// being painted into the transcript. Nothing is sent to a session that has not asked
-/// with /hud on, so a stock client never sees a line of it.
+/// The feed itself - the /hud switch, who is listening, the wire contract - is
+/// Aeshnidae.Hud; this mod is one provider. HudFeed.cs is the verbatim copy of that
+/// mod's Feed.cs (cross-mod types are unsafe, ACE's are not), and /hud-skills is the
+/// command the Hud mod invokes when a session turns the feed on or asks for a sync.
 /// </summary>
 public static class Hud
 {
-    public const int ChatType = 0x21;
-
-    /// <summary>Sessions that asked for the feed. Dies with the connection.</summary>
-    private static readonly ConditionalWeakTable<Session, object> _on = new();
-
-    private static readonly JsonSerializerOptions Json = new()
-    {
-        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-        DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
-    };
-
-    public static bool IsOn(Session session) => _on.TryGetValue(session, out _);
-
-    public static void TurnOn(Session session) => _on.AddOrUpdate(session, new object());
-
-    public static void TurnOff(Session session) => _on.Remove(session);
-
     /// <summary>Re-send every panel this mod owns, if the session is listening.</summary>
     public static void Refresh(Player? player)
     {
         try
         {
-            if (player?.Session is null || !IsOn(player.Session))
+            if (player?.Session is null || !HudFeed.IsOn(player))
                 return;
 
-            Send(player.Session, SkillsPanel(player));
+            HudFeed.Send(player.Session, SkillsPanel(player));
         }
         catch (Exception ex)
         {
@@ -60,10 +26,32 @@ public static class Hud
         }
     }
 
-    public static void Send(Session session, object panel)
+    /// <summary>
+    /// Ask Aeshnidae.Hud to re-send every provider's panel - ours and the bank's, since a
+    /// raise changes both. Goes through ACE's command registry because the Hud mod's
+    /// types are out of reach; if that mod is not loaded, falls back to our own panel.
+    /// </summary>
+    public static void RefreshAll(Session session)
     {
-        var text = JsonSerializer.Serialize(panel, Json);
-        session.Network.EnqueueSend(new GameMessageSystemChat(text, (ChatMessageType)ChatType));
+        if (session.Player is null || !HudFeed.IsOn(session.Player))
+            return;
+
+        var hud = CommandManager.GetCommandByName("hud").FirstOrDefault();
+
+        if (hud is null)
+        {
+            Refresh(session.Player);
+            return;
+        }
+
+        try
+        {
+            ((CommandHandler)hud.Handler)(session, "sync");
+        }
+        catch (Exception ex)
+        {
+            ModManager.Log($"[{Mod.Name}] hud sync failed: {ex}", ModManager.LogLevel.Warn);
+        }
     }
 
     /// <summary>
@@ -127,42 +115,10 @@ public static class Hud
         };
     }
 
-    [CommandHandler("hud", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, -1,
-        "Server-drawn panels, for clients that can show them (OpenAC with the Aeshnidae HUD plugin).",
-        "/hud on|off|sync")]
-    public static void HandleHud(Session session, params string[] parameters)
-    {
-        var player = session.Player;
-
-        if (player is null)
-            return;
-
-        var verb = parameters.Length > 0 ? parameters[0].ToLowerInvariant() : "status";
-
-        switch (verb)
-        {
-            case "on":
-                TurnOn(session);
-                Refresh(player);
-                break;
-
-            case "off":
-                TurnOff(session);
-                session.Network.EnqueueSend(new GameMessageSystemChat("HUD feed off.", ChatMessageType.Broadcast));
-                break;
-
-            case "sync":
-                if (IsOn(session))
-                    Refresh(player);
-                else
-                    session.Network.EnqueueSend(new GameMessageSystemChat("HUD feed is off - /hud on first.", ChatMessageType.Broadcast));
-                break;
-
-            default:
-                session.Network.EnqueueSend(new GameMessageSystemChat(
-                    $"HUD feed is {(IsOn(session) ? "on" : "off")}. It only does anything in a client that can draw the panels.",
-                    ChatMessageType.Broadcast));
-                break;
-        }
-    }
+    /// <summary>The provider command Aeshnidae.Hud invokes; a player can also type it.</summary>
+    [CommandHandler("hud-skills", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, -1,
+        "Re-send the skills panel to a client showing the HUD feed.",
+        "/hud-skills")]
+    public static void HandleHudSkills(Session session, params string[] parameters) =>
+        Refresh(session.Player);
 }

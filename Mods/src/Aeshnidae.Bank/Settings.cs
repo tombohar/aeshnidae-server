@@ -61,6 +61,30 @@ public class Settings
     public Dictionary<string, long> ResonanceOverrides { get; set; } = new();
 
     /// <summary>
+    /// Registry entries that are bookkeeping rather than quests, as wildcard patterns
+    /// (* matches anything; case-insensitive): pickup and turn-in timers, the wait
+    /// stamp a kill task sets at hand-in, stipend flags. They pay nothing, whatever the
+    /// flat rate says. Kill counting itself is skipped by the Increment guard in
+    /// Patches, whatever the counter is called, so it needs no pattern here.
+    /// </summary>
+    public string[] ResonanceSkipPatterns { get; set; } = { "*Timer*", "*Wait_*", "*Stipend*", "*Cooldown*" };
+
+    private System.Text.RegularExpressions.Regex[]? _resonanceSkip;
+
+    /// <summary>Does a registry name match <see cref="ResonanceSkipPatterns"/>?</summary>
+    public bool IsResonanceSkipped(string questName)
+    {
+        _resonanceSkip ??= (ResonanceSkipPatterns ?? Array.Empty<string>())
+            .Where(p => !string.IsNullOrWhiteSpace(p))
+            .Select(p => new System.Text.RegularExpressions.Regex(
+                "^" + System.Text.RegularExpressions.Regex.Escape(p).Replace("\\*", ".*") + "$",
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled))
+            .ToArray();
+
+        return !string.IsNullOrEmpty(questName) && _resonanceSkip.Any(r => r.IsMatch(questName));
+    }
+
+    /// <summary>
     /// Pay only the first time a quest is solved, rather than every completion.
     ///
     /// OFF, deliberately. A currency that ignores repeatable content makes repeatable
@@ -124,16 +148,18 @@ public class Settings
     /// <summary>
     /// Fraction of a transfer destroyed in transit, 0 to 1.
     ///
-    /// A sink on every trade, and the only one this mod has. 0.02 is two percent. Worth
-    /// something rather than nothing: currency that only ever enters an economy is a
-    /// currency that stops meaning anything.
+    /// Zero: what you send is what arrives. It was 0.02 until 2026-09-14, as the one sink
+    /// the mod had; Tom took it out. Radiance already has a sink that matters - skill
+    /// mastery destroys it - and a fee on handing it to a friend only taxed the social
+    /// use of the currency. Set it above zero if the economy ever needs draining.
     /// </summary>
-    public double TransferTax { get; set; } = 0.02;
+    public double TransferTax { get; set; } = 0.0;
 
     /// <summary>
-    /// Smallest transfer allowed, so the tax cannot be rounded away by sending 1 at a time.
-    /// Radiance is on the experience scale - one kill is thousands - so this sits where
-    /// it still means something.
+    /// Smallest transfer allowed. It kept a tax from being rounded away one unit at a
+    /// time; with no tax it is simply a floor against spamming /b pay. Radiance is on
+    /// the experience scale - one kill is thousands - so this sits where it still means
+    /// something.
     /// </summary>
     public long MinimumTransfer { get; set; } = 100_000;
 

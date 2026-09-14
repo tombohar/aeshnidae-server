@@ -74,9 +74,10 @@ public static class Commands
         var raised = Mastery.Raise(player, skill, count, out var message);
         Reply(session, message);
 
-        // A listening client redraws its skills panel from the new ranks and balance.
+        // A listening client redraws every panel: the skills panel from the new ranks,
+        // and the bank panel, since a raise spends Radiance.
         if (raised)
-            Hud.Refresh(player);
+            Hud.RefreshAll(session);
     }
 
     private static void ShowAll(Session session)

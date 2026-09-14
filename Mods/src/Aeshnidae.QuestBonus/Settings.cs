@@ -67,6 +67,53 @@ public class Settings
         ["StipendTimer_Monthly"] = 0,
     };
 
+    /// <summary>
+    /// Weights by wildcard pattern, for the registry entries that are bookkeeping rather
+    /// than quests: pickup and turn-in timers, kill-task counters and the wait stamp a
+    /// hand-in sets, stipend flags. Checked after <see cref="QuestWeights"/> (an exact
+    /// name wins) and before <see cref="DefaultPoints"/>; the first pattern that matches
+    /// decides. * matches anything; names are matched case-insensitively.
+    ///
+    /// Before 2026-09-14 every one of these counted a full point the first time it was
+    /// set, so the bonus was as much a count of portals walked through and kill tasks
+    /// picked up as of quests solved. The shard has ~4,200 registry names and ~570 of
+    /// them are timers, kill counters or portal stamps.
+    /// </summary>
+    public Dictionary<string, double> QuestWeightPatterns { get; set; } = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["*Timer*"] = 0,
+        ["*Wait_*"] = 0,
+        ["*Stipend*"] = 0,
+        ["*Cooldown*"] = 0,
+        ["*KillTask*"] = 0,
+        ["*Killed*"] = 0,
+    };
+
+    private List<(System.Text.RegularExpressions.Regex Pattern, double Weight)>? _patterns;
+
+    /// <summary>The first pattern weight that matches, or null when none does.</summary>
+    public double? PatternWeightOf(string questName)
+    {
+        _patterns ??= (QuestWeightPatterns ?? new Dictionary<string, double>())
+            .Where(kv => !string.IsNullOrWhiteSpace(kv.Key))
+            .Select(kv => (new System.Text.RegularExpressions.Regex(
+                               "^" + System.Text.RegularExpressions.Regex.Escape(kv.Key).Replace("\\*", ".*") + "$",
+                               System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled),
+                           kv.Value))
+            .ToList();
+
+        if (string.IsNullOrEmpty(questName))
+            return null;
+
+        foreach (var (pattern, weight) in _patterns)
+        {
+            if (pattern.IsMatch(questName))
+                return weight;
+        }
+
+        return null;
+    }
+
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         WriteIndented = true,

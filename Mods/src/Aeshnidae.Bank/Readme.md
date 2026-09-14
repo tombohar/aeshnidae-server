@@ -19,11 +19,23 @@ A bank shared by every character on an account.
 | `/b d` | deposit everything the bank takes, in one go |
 | `/bank deposit <item> [n]`, `/b d <item> [n]` | deposit; no amount means all |
 | `/bank withdraw <item> [n]`, `/b w <item> [n]` | withdraw; no amount means all |
-| `/bank pay <player> <cur> <n>`, `/b pay ...` | send Radiance or Resonance (2% fee, 100,000 minimum) |
+| `/bank pay <player> <cur> <n>`, `/b pay ...` | send Radiance or Resonance (no fee, 100,000 minimum) |
 | `/bank autolum on\|off` | earned luminance straight to the bank, past the cap |
 | `/earned` | Radiance, Resonance, luminance over 5/10/30/60 min, session, per hour |
 | `/bank help` | item names and short forms |
+| `/hud-bank` | re-send the bank panel to a client showing the HUD feed (see below) |
 | `/bankreload` | Admin - re-read `Settings.json` |
+
+## The bank panel
+
+For clients that can draw it (OpenAC with the Aeshnidae HUD plugin; see
+`Aeshnidae.Hud`), the bank is also a window: one row per currency with banked and
+carried amounts, an Amount box and a Pay-to box, and Deposit / Withdraw / Deposit all /
+Pay / Refresh buttons. Every button is a `/b` command with the selected row's short
+name and the boxes filled in - a blank amount means all of it, exactly as it does
+typed. `Hud.cs` builds it; `HudFeed.cs` is the verbatim copy of `Aeshnidae.Hud\Feed.cs`
+(a mod cannot use another mod's types). The panel is re-sent after every `/b` verb,
+when a payment arrives, and after a `/raise` spends Radiance.
 
 Item names can be several words. The parser takes the first argument as the verb
 and the last as the amount, then joins everything between into the item name, so

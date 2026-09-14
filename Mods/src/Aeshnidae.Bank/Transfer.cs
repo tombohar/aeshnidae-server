@@ -92,6 +92,7 @@ public static class Transfer
             var online = PlayerManager.GetOnlinePlayer(recipient.Guid);
 
             online?.SendMessage($"{sender.Name} sent you {delivered:N0} {Currencies.DisplayName(kind)}.");
+            Hud.Refresh(online);
 
             var note = tax > 0 ? $" ({tax:N0} lost to the transit fee)" : "";
 

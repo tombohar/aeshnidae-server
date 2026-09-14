@@ -18,14 +18,19 @@ public static class QuestBonusExtensions
     /// <summary>Replaces ACE.Shared's QuestExtensions.HasSolves.</summary>
     public static bool HasSolves(this CharacterPropertiesQuestRegistry quest) => quest.NumTimesCompleted != 0;
 
-    /// <summary>Points a quest is worth, by name. Falls back to Settings.DefaultPoints.</summary>
+    /// <summary>
+    /// Points a quest is worth: an exact entry in QuestWeights, else the first matching
+    /// QuestWeightPatterns entry, else Settings.DefaultPoints. The same answer serves
+    /// the live increments and the login resync, so the two cannot disagree.
+    /// </summary>
     public static double WeightOf(string questFormat)
     {
         var name = QuestManager.GetQuestName(questFormat);
 
-        return Mod.Settings.QuestWeights.TryGetValue(name, out var weight)
-            ? weight
-            : Mod.Settings.DefaultPoints;
+        if (Mod.Settings.QuestWeights.TryGetValue(name, out var weight))
+            return weight;
+
+        return Mod.Settings.PatternWeightOf(name) ?? Mod.Settings.DefaultPoints;
     }
 
     public static double GetQuestPoints(this Player player) =>

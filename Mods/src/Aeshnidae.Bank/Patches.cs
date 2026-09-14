@@ -44,7 +44,11 @@ public static class Patches
         if (!Mod.Settings.RadianceEnabled || !BankDb.Ready || amount <= 0)
             return;
 
-        if (xpType is not (XpType.Kill or XpType.Quest))
+        // Kill and Quest are the earner's own award. Fellowship is every other member's
+        // slice of a split - SplitXp relabels it on the way in - which is the "share of
+        // a fellowship's" the front page promises. It was missing here until 2026-09-14,
+        // so a fellow earned nothing from a shared kill and the killer only their slice.
+        if (xpType is not (XpType.Kill or XpType.Quest or XpType.Fellowship))
             return;
 
         if (__instance.IsOlthoiPlayer || __instance.Account is null)
@@ -253,6 +257,25 @@ public static class Patches
     /// for repeatable content, that is what makes repeatable content worth doing. Set
     /// ResonanceFirstSolveOnly if you would rather it did not.
     /// </summary>
+    /// <summary>
+    /// Kill counting is not completing a quest. A kill task ticks its counter through
+    /// QuestManager.Increment, which calls Update once per unit - so before this a
+    /// "kill fifty" task paid fifty times on the way and once more at the hand-in.
+    /// Thread-static because Increment runs on a landblock thread and the Update
+    /// postfix reads the flag on that same thread, inside that same call. A finalizer
+    /// rather than a postfix clears it, so an exception inside cannot leave it set.
+    /// </summary>
+    [ThreadStatic]
+    private static bool _insideIncrement;
+
+    [HarmonyPrefix]
+    [HarmonyPatch(typeof(QuestManager), nameof(QuestManager.Increment), new[] { typeof(string), typeof(int) })]
+    public static void PreIncrement() => _insideIncrement = true;
+
+    [HarmonyFinalizer]
+    [HarmonyPatch(typeof(QuestManager), nameof(QuestManager.Increment), new[] { typeof(string), typeof(int) })]
+    public static void PostIncrement() => _insideIncrement = false;
+
     [HarmonyPrefix]
     [HarmonyPatch(typeof(QuestManager), nameof(QuestManager.Update), new[] { typeof(string) })]
     public static void PreQuestUpdate(string questFormat, QuestManager __instance, ref int __state) =>
@@ -297,7 +320,16 @@ public static class Patches
             if (Mod.Settings.ResonanceFirstSolveOnly && solvesBefore != 0)
                 return;
 
+            // A counter going up is not a completion; the hand-in that follows it is.
+            if (_insideIncrement)
+                return;
+
             var name = QuestManager.GetQuestName(questFormat);
+
+            // Timers and other bookkeeping stamps are quests to the registry, not to
+            // anyone else.
+            if (Mod.Settings.IsResonanceSkipped(name))
+                return;
 
             var resonance = Earning.ResonanceFor(name);
 

@@ -40,6 +40,10 @@ public static class Commands
             ModManager.Log($"[{Mod.Name}] /bank failed for {player.Name}: {ex}", ModManager.LogLevel.Error);
             Send(player, "Something went wrong at the bank. Nothing was changed.");
         }
+
+        // Whatever the verb did, a listening client redraws its bank panel from the
+        // balances as they now are. Cheap, and simpler than tracking which verbs move money.
+        Hud.Refresh(player);
     }
 
     [CommandHandler("b", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, -1,

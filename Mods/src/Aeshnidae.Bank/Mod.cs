@@ -24,6 +24,9 @@ public class Mod : IHarmonyMod
     {
         Settings = Settings.Load(ModPath);
 
+        // The HUD listening flag must be ephemeral before anyone sets it; see HudFeed.
+        HudFeed.RegisterProperty();
+
         _harmony = new Harmony(HarmonyId);
         // Pass the assembly explicitly. The parameterless overload finds its target
         // by walking the stack, and the JIT inlines a small Initialize(), so the walk
@@ -39,6 +42,17 @@ public class Mod : IHarmonyMod
 
             // Only after the table exists - the flush writes to it.
             Earning.Start();
+
+            // A reload (/bankreload, hot reload) rebuilds this assembly's statics while
+            // players stay online, and the auto-bank flags and /earned session clocks
+            // are only read at login. Re-read them for everyone already in the world -
+            // otherwise a flagged character's luminance lands on them, and past their
+            // cap is lost, until they relog.
+            foreach (var online in PlayerManager.GetAllOnline())
+            {
+                AutoBank.Load(online);
+                History.StartSession(online);
+            }
 
             ModManager.Log($"[{Name}] ready - balances in `{BankDb.TableName}` on the shard database");
         }

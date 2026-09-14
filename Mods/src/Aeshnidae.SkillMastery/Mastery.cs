@@ -172,12 +172,18 @@ public static class Mastery
     /// Price of the next rank, given how many skill points are already held. Growth
     /// compounds only from the band's own start, so editing one band never shifts the
     /// ones after it.
+    ///
+    /// One price for every skill unless PriceByAdvancementClass says otherwise: the
+    /// ranks bought are class-agnostic (BonusFor applies them to a trained or a
+    /// specialized skill alike), so a price that depended on the class at the moment
+    /// of purchase could be dodged by ordering the purchases.
     /// </summary>
     public static long CostOfNextRank(int currentRanks, SkillAdvancementClass advancementClass)
     {
         var points = SkillPointsFor(currentRanks);
         var band = Mod.Settings.BandFor(points);
-        var baseCost = BaseRankCost(advancementClass);
+        var priceClass = Mod.Settings.PriceByAdvancementClass ? advancementClass : SkillAdvancementClass.Trained;
+        var baseCost = BaseRankCost(priceClass);
 
         // The band prices a whole skill point; split it across the ranks that make
         // one up, so RanksPerSkillPoint changes granularity and never total cost.
