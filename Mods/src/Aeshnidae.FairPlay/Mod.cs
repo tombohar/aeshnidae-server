@@ -21,7 +21,7 @@ public class Mod : IHarmonyMod
     internal static VpnList? Vpn { get; private set; }
 
     /// <summary>Counters for /fairplay, so the rules are visible rather than mysterious.</summary>
-    public static long Bounces, PledgesBlocked, LoginsRecorded, LogoutsForced, LinkedTrades, GroundTransfers, VpnLogins, AccountsRefused;
+    public static long Bounces, PledgesBlocked, LoginsRecorded, LogoutsForced, LinkedTrades, GroundTransfers, VendorHandovers, VpnLogins, AccountsRefused;
 
     private static Harmony? _harmony;
     private static System.Timers.Timer? _sweep;

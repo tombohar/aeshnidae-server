@@ -42,7 +42,7 @@ public static class Commands
             .AppendLine($"One char outside Marketplace: {s.OneCharacterOutsideMarketplace} (landblock 0x{s.Marketplace.Landblock})")
             .AppendLine($"Same-IP allegiance blocked: {s.BlockSameIpAllegiance}")
             .AppendLine($"Login history: {Mod.Logins?.KnownAccounts ?? 0} accounts across {Mod.Logins?.KnownAddresses ?? 0} addresses")
-            .AppendLine($"Since start - logins {Mod.LoginsRecorded}, bounces {Mod.Bounces}, forced logouts {Mod.LogoutsForced}, pledges blocked {Mod.PledgesBlocked}, linked trades {Mod.LinkedTrades}, ground transfers {Mod.GroundTransfers}");
+            .AppendLine($"Since start - logins {Mod.LoginsRecorded}, bounces {Mod.Bounces}, forced logouts {Mod.LogoutsForced}, pledges blocked {Mod.PledgesBlocked}, linked trades {Mod.LinkedTrades}, ground transfers {Mod.GroundTransfers}, vendor handovers {Mod.VendorHandovers}");
 
         var shared = Mod.Logins?.Shared(s.FlagAccountsPerAddress) ?? new();
         if (shared.Count > 0)

@@ -224,6 +224,59 @@ public static class Patches
         }
     }
 
+    // ------------------------------------------------------------------- vendor
+
+    /// <summary>
+    /// What the vendor kept. ProcessItemsForPurchase decides per item whether to resell
+    /// it or destroy it, so the ones still in UniqueItemsForSale afterwards are the ones
+    /// another character can buy.
+    /// </summary>
+    [HarmonyPostfix]
+    [HarmonyPatch(typeof(Vendor), nameof(Vendor.ProcessItemsForPurchase))]
+    public static void PostProcessItemsForPurchase(Vendor __instance, Player player, Dictionary<uint, WorldObject> items)
+    {
+        try
+        {
+            if (!Mod.Settings.Enabled || !Mod.Settings.FlagVendorHandovers || items is null)
+                return;
+
+            foreach (var item in items.Values)
+            {
+                if (item is not null && __instance.UniqueItemsForSale.ContainsKey(item.Guid))
+                    VendorWatch.OnSell(player, item, __instance.Name);
+            }
+        }
+        catch (Exception ex)
+        {
+            ModManager.Log($"[{Mod.Name}] vendor sell capture failed: {ex.Message}", ModManager.LogLevel.Error);
+        }
+    }
+
+    /// <summary>
+    /// Unique items reaching a buyer. A prefix, taking the guids before the purchase
+    /// completes - FinalizeBuyTransaction removes each one from the vendor as it lands.
+    /// </summary>
+    [HarmonyPrefix]
+    [HarmonyPatch(typeof(Player), nameof(Player.FinalizeBuyTransaction))]
+    public static void PreFinalizeBuyTransaction(Player __instance, List<WorldObject> uniqueItems)
+    {
+        try
+        {
+            if (!Mod.Settings.Enabled || !Mod.Settings.FlagVendorHandovers || uniqueItems is null)
+                return;
+
+            foreach (var item in uniqueItems)
+            {
+                if (item is not null)
+                    VendorWatch.OnBuy(__instance, item.Guid.Full);
+            }
+        }
+        catch (Exception ex)
+        {
+            ModManager.Log($"[{Mod.Name}] vendor buy capture failed: {ex.Message}", ModManager.LogLevel.Error);
+        }
+    }
+
     // ------------------------------------------------------------------ trading
 
     /// <summary>

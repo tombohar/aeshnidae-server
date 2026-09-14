@@ -197,6 +197,24 @@ public class Settings
     public bool FlagAllDrops { get; set; } = false;
 
     /// <summary>
+    /// Flag when an item one character sells to a vendor is bought by a different
+    /// character.
+    ///
+    /// The third dead drop, after the ground and a housing chest: ACE keeps a
+    /// player-sold item on the vendor until somebody buys it or it rots, so selling it
+    /// and having the other character buy it back moves it with no trade, give or drop
+    /// to see. Ordinary selling is never reported - only the completed handover.
+    /// </summary>
+    public bool FlagVendorHandovers { get; set; } = true;
+
+    /// <summary>
+    /// How long after a sale a purchase by someone else still counts as a handover, in
+    /// seconds. Longer than the ground window because the item is in no danger on the
+    /// vendor, so there is no hurry to collect it.
+    /// </summary>
+    public double VendorHandoverWindowSeconds { get; set; } = 1800;
+
+    /// <summary>
     /// Match logins against downloaded VPN / datacentre CIDR lists.
     ///
     /// Not used to block. Blocking VPNs punishes the legitimate - corporate networks,
