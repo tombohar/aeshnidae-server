@@ -106,6 +106,10 @@ public static class Ritual
 
             completed = true;
 
+            // After the perks and the save, never interleaved with the reset above:
+            // the character is dequipped and mid-change until here.
+            Ceremony(npc, player);
+
             // Audited unconditionally. An enlightenment is the single largest state
             // change a character can undergo, and "it says here you were level 275"
             // is the only way to answer a support ticket about one.
@@ -364,6 +368,78 @@ public static class Ritual
     }
 
     // ---- giving -------------------------------------------------------------
+
+    /// <summary>
+    /// The showpiece. Three beats: the Font wakes and the world goes white for the
+    /// player alone, with the chant; the augmentation burst on the character for
+    /// everyone to see; then the fireworks, and the white lifts.
+    ///
+    /// Runs on the world thread already (we are inside an emote), so the chain is for
+    /// the timing, not the threading. The fog is the one thing here that can go wrong:
+    /// it is sticky per player, across landblocks and a relog, so it is set through
+    /// SetFogColor - which tracks it - and cleared on the same chain, unconditionally.
+    /// SendEnvironChange would paint it without tracking it, and ClearFogColor would
+    /// then decline to clear what it did not know about.
+    /// </summary>
+    private static void Ceremony(WorldObject npc, Player player)
+    {
+        if (!Mod.Settings.Ceremony)
+            return;
+
+        try
+        {
+            var chain = new ActionChain();
+
+            // Each beat guards itself: the action queue has no catch of its own, and a
+            // player who logs out between beats has no session and no landblock. The
+            // last beat clears the fog even so - a stuck white screen is the one
+            // failure that follows a player home.
+            chain.AddAction(player, () => Beat(player, () =>
+            {
+                if (npc?.CurrentLandblock is not null)
+                    npc.ApplyVisualEffects(PlayScript.EnchantUpWhite);
+
+                player.SetFogColor(EnvironChangeType.WhiteFog);
+                player.SendEnvironChange(EnvironChangeType.Chant1Sound);
+            }));
+
+            chain.AddDelaySeconds(1.2);
+            chain.AddAction(player, () => Beat(player, () => player.ApplyVisualEffects(PlayScript.AugmentationUseOther)));
+
+            chain.AddDelaySeconds(1.2);
+            chain.AddAction(player, () =>
+            {
+                Beat(player, () => player.ApplyVisualEffects(PlayScript.WeddingBliss));
+
+                try { if (player?.Session is not null) player.ClearFogColor(); } catch { }
+            });
+
+            chain.EnqueueChain();
+        }
+        catch (Exception ex)
+        {
+            // The fog is the only thing worth a second attempt - a failed particle is
+            // nothing, a stuck white screen is a support ticket.
+            try { player.ClearFogColor(); } catch { }
+
+            ModManager.Log($"[{Mod.Name}] ceremony failed for {player.Name}: {ex.Message}", ModManager.LogLevel.Warn);
+        }
+    }
+
+    private static void Beat(Player player, Action act)
+    {
+        try
+        {
+            if (player?.Session is null || player.CurrentLandblock is null)
+                return;
+
+            act();
+        }
+        catch (Exception ex)
+        {
+            ModManager.Log($"[{Mod.Name}] ceremony beat failed: {ex.Message}", ModManager.LogLevel.Warn);
+        }
+    }
 
     /// <summary>
     /// The +1 to all trained skills and +2 vitality are not applied here. ACE reads

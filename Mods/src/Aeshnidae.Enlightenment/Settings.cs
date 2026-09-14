@@ -153,6 +153,13 @@ public class Settings
     /// <summary>Announce each enlightenment on the world broadcast channel.</summary>
     public bool BroadcastToServer { get; set; } = true;
 
+    /// <summary>
+    /// The three-beat effect at the Font: a private white-out and chant, the
+    /// augmentation burst, the fireworks. Purely visual, and off means the
+    /// enlightenment happens with only the chat lines.
+    /// </summary>
+    public bool Ceremony { get; set; } = true;
+
     // ---- the emote gate -----------------------------------------------------
 
     /// <summary>

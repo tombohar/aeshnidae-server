@@ -91,6 +91,12 @@ public class Settings
     public bool PriceByAdvancementClass { get; set; } = false;
 
     /// <summary>
+    /// Play the retail augmentation burst on every /raise and the fireworks on the
+    /// first point and every tenth. Purely visual; off means silent purchases.
+    /// </summary>
+    public bool Effects { get; set; } = true;
+
+    /// <summary>
     /// Ceiling on mastery skill points per skill.
     ///
     /// Mostly ceremonial under the retail curve - the price does the capping. At 1.0787

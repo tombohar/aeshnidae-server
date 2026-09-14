@@ -150,6 +150,67 @@ public static class Mastery
     }
 
     /// <summary>
+    /// What buying permanent power looks like. Retail plays AugmentationUseSkill when
+    /// an augmentation gem spends experience on a skill and WeddingBliss - the
+    /// fireworks - the moment a skill reaches its ceiling; /raise is both of those, so
+    /// players already read the effects as "I bought power" and "I hit a milestone".
+    /// The burst and the RaiseTrait chime on every purchase; the fireworks on the
+    /// first point and every tenth after, which with one rank per point means every
+    /// tenth /raise rather than every one.
+    ///
+    /// Raise runs on the command thread, so the broadcasts go through an ActionChain
+    /// onto the player's landblock. Nothing here can affect the purchase: it has
+    /// already been paid for and saved by the time this is called.
+    /// </summary>
+    private static void Celebrate(Player player, int pointsBefore, int pointsAfter)
+    {
+        if (!Mod.Settings.Effects || pointsAfter <= pointsBefore)
+            return;
+
+        try
+        {
+            var milestone = pointsBefore == 0 || pointsAfter / 10 > pointsBefore / 10;
+
+            var chain = new ActionChain();
+
+            // Each beat guards itself: the action queue has no catch of its own, and a
+            // player who logs out between beats has no session and no landblock.
+            chain.AddAction(player, () => Beat(player, () =>
+            {
+                player.ApplyVisualEffects(PlayScript.AugmentationUseSkill);
+                player.EnqueueBroadcast(new GameMessageSound(player.Guid, Sound.RaiseTrait, 1.0f));
+            }));
+
+            if (milestone)
+            {
+                chain.AddDelaySeconds(1.0);
+                chain.AddAction(player, () => Beat(player, () => player.ApplyVisualEffects(PlayScript.WeddingBliss)));
+            }
+
+            chain.EnqueueChain();
+        }
+        catch (Exception ex)
+        {
+            ModManager.Log($"[{Mod.Name}] mastery effect failed for {player.Name}: {ex.Message}", ModManager.LogLevel.Warn);
+        }
+    }
+
+    private static void Beat(Player player, Action act)
+    {
+        try
+        {
+            if (player?.Session is null || player.CurrentLandblock is null)
+                return;
+
+            act();
+        }
+        catch (Exception ex)
+        {
+            ModManager.Log($"[{Mod.Name}] mastery effect beat failed: {ex.Message}", ModManager.LogLevel.Warn);
+        }
+    }
+
+    /// <summary>
     /// The last retail rank's price for this advancement class - what a
     /// CostPerSkillPoint of 1.0 means. Read from the dat so it stays right if the
     /// table ever changes underneath us.
@@ -296,6 +357,8 @@ public static class Mastery
         var before = SkillPointsFor(currentRanks);
         var after = SkillPointsFor(newRanks);
         var perPoint = Math.Max(1, Mod.Settings.RanksPerSkillPoint);
+
+        Celebrate(player, before, after);
 
         message = $"Your {skill.ToSentence()} mastery rises to {Points(newRanks)} skill points, for {cost:N0} Radiance ({remaining:N0} left).";
 
