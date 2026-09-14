@@ -64,8 +64,9 @@ public class Settings
     /// Registry entries that are bookkeeping rather than quests, as wildcard patterns
     /// (* matches anything; case-insensitive): pickup and turn-in timers, the wait
     /// stamp a kill task sets at hand-in, stipend flags. They pay nothing, whatever the
-    /// flat rate says. Kill counting itself is skipped by the Increment guard in
-    /// Patches, whatever the counter is called, so it needs no pattern here.
+    /// flat rate says. Kill counting itself is handled by the counting guard in
+    /// Patches (HandleKillTask and Increment), whatever the counter is called - a
+    /// task pays once, on the kill that completes it - so it needs no pattern here.
     /// </summary>
     public string[] ResonanceSkipPatterns { get; set; } = { "*Timer*", "*Wait_*", "*Stipend*", "*Cooldown*" };
 

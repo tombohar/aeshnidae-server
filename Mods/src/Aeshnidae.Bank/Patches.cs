@@ -258,23 +258,39 @@ public static class Patches
     /// ResonanceFirstSolveOnly if you would rather it did not.
     /// </summary>
     /// <summary>
-    /// Kill counting is not completing a quest. A kill task ticks its counter through
-    /// QuestManager.Increment, which calls Update once per unit - so before this a
-    /// "kill fifty" task paid fifty times on the way and once more at the hand-in.
-    /// Thread-static because Increment runs on a landblock thread and the Update
-    /// postfix reads the flag on that same thread, inside that same call. A finalizer
-    /// rather than a postfix clears it, so an exception inside cannot leave it set.
+    /// A counter ticking is not a completion. A kill task counts kills through
+    /// QuestManager.HandleKillTask, which Stamps the counter (one Update) per kill, and
+    /// the IncrementQuest emote counts through Increment (one Update per unit) - so
+    /// before this a "kill a hundred" task paid a hundred times on the way. Inside
+    /// either, AwardResonance pays only the tick that reaches the task's maximum: "Your
+    /// task is complete!" - once per task, which is what a completion is worth.
+    ///
+    /// The first cut of this (09:56 today) guarded Increment alone, on the belief that
+    /// kill tasks went through it. They go through HandleKillTask; kills kept paying
+    /// for an hour. Both are guarded now.
+    ///
+    /// Thread-static because the counting runs on a landblock thread and the Update
+    /// postfix reads the flag on that same thread, inside that same call. Finalizers
+    /// rather than postfixes clear it, so an exception inside cannot leave it set.
     /// </summary>
     [ThreadStatic]
-    private static bool _insideIncrement;
+    private static bool _insideCounting;
 
     [HarmonyPrefix]
     [HarmonyPatch(typeof(QuestManager), nameof(QuestManager.Increment), new[] { typeof(string), typeof(int) })]
-    public static void PreIncrement() => _insideIncrement = true;
+    public static void PreIncrement() => _insideCounting = true;
 
     [HarmonyFinalizer]
     [HarmonyPatch(typeof(QuestManager), nameof(QuestManager.Increment), new[] { typeof(string), typeof(int) })]
-    public static void PostIncrement() => _insideIncrement = false;
+    public static void PostIncrement() => _insideCounting = false;
+
+    [HarmonyPrefix]
+    [HarmonyPatch(typeof(QuestManager), nameof(QuestManager.HandleKillTask), new[] { typeof(string), typeof(WorldObject) })]
+    public static void PreHandleKillTask() => _insideCounting = true;
+
+    [HarmonyFinalizer]
+    [HarmonyPatch(typeof(QuestManager), nameof(QuestManager.HandleKillTask), new[] { typeof(string), typeof(WorldObject) })]
+    public static void PostHandleKillTask() => _insideCounting = false;
 
     [HarmonyPrefix]
     [HarmonyPatch(typeof(QuestManager), nameof(QuestManager.Update), new[] { typeof(string) })]
@@ -320,9 +336,16 @@ public static class Patches
             if (Mod.Settings.ResonanceFirstSolveOnly && solvesBefore != 0)
                 return;
 
-            // A counter going up is not a completion; the hand-in that follows it is.
-            if (_insideIncrement)
-                return;
+            // A counter going up is not a completion - except the tick that reaches the
+            // task's maximum, which is the moment the task is done. Update refuses to go
+            // past MaxSolves, so that tick happens exactly once per task.
+            if (_insideCounting)
+            {
+                var max = manager.GetMaxSolves(questFormat);
+
+                if (max <= 0 || solvesAfter != max)
+                    return;
+            }
 
             var name = QuestManager.GetQuestName(questFormat);
 
